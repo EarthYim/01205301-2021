@@ -1,7 +1,5 @@
 # Digital and MCU Project 01205301-2021
-<<<<<<< HEAD
+NOTICE: inputPin 1 has been reassgined to pin A2 (16) as pin 1 is used for serial
 
 ![Alt text](img/proj_digi.png "Title")
-=======
-![Alt text](img/proj_digi.png?raw=true "Title")
->>>>>>> 3c368a94d94a1738428b2b983ed5e145f63274b6
+
