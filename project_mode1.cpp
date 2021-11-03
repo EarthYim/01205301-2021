@@ -26,6 +26,8 @@ const int mode1_interval = 500;
 const int buzzerPin = 3;
 float start = 0;
 float *start_ptr = &start;
+float stop_time = 0;
+bool st_state = LOW;
 
 
 //functions
@@ -97,16 +99,17 @@ void stu_id() {
         if (millis()-id_timer > 9*mode1_interval) {
             charLCD("1", 15, 0);
         }
+
     }
 }
 
 void blinkLCD(int pin, String AL, int COL, int ROW, bool sound, int NOTE) {
     
-    if (debounce(pin) == HIGH) {
+    if (digitalRead(pin) == HIGH) {
         charLCD(AL, COL, ROW);
 
         if (sound) {
-            tone(buzzerPin, NOTE, 450);
+            tone(buzzerPin, NOTE, 100);
         }
     }
 
@@ -141,42 +144,56 @@ void stw(float start) {
     int sec;
     String str_min;
     String str_sec;
+    bool curr_state;
 
     current = millis();
 
+    //2 mins reset
     if (current - start > 120000.00) { 
         *start_ptr = millis();
     }
-/*   
-    if (start-millis() > current) { //what does this do again???
-        start = current;
+
+    //start-stop
+    curr_state = debounce(12);
+
+    if (curr_state == HIGH && st_state == LOW) {
+        //stop
+        st_state = HIGH;
+        stop_time = current; 
     }
-    */
+  
+  	else {
     
-    min = (current - start)/60000;
-    sec = (current - start)/1000 - (min*60);
+      if (curr_state == HIGH && st_state == HIGH) {
+          //start again
+          *start_ptr = start + (current-stop_time);
+          st_state = LOW;    
+      }
+    }
 
-    if (sec*1000 - current)
-
-
-    if (min>9) { str_min = String(min); }
-
-    else { str_min = "0" + String(min); }
-
-    if (sec>9) { str_sec = String(sec); }
+    //reset button
+    if (debounce(11) == HIGH) {
+        *start_ptr = current;
+      	st_state = LOW;
+    }
     
-    else { str_sec = "0" + String(sec); }
+    if (st_state == LOW) {
+        min = (current - *start_ptr)/60000;
+        sec = (current - *start_ptr)/1000 - (min*60);
 
-    charLCD(str_min, 0, 1);
-    colon(current);
-    charLCD(str_sec, 3, 1);
-  	Serial.print("Current: ");
-  	Serial.println(current);
-  	Serial.print("start: ");
-    Serial.println(start);
+        if (min>9) { str_min = String(min); }
 
+        else { str_min = "0" + String(min); }
+
+        if (sec>9) { str_sec = String(sec); }
+        
+        else { str_sec = "0" + String(sec); }
+
+        charLCD(str_min, 0, 1);
+        colon(current);
+        charLCD(str_sec, 3, 1);
+    }
 }
-
 
 bool debounce(int pin)
 {
@@ -197,14 +214,11 @@ bool debounce(int pin)
   return state;
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup()
 {
-    Serial.begin(9600);
-
-  int inputPin[] = {0,1,2,3,10,11,12,13, 14, 15, 16};
+    int inputPin[] = {0,1,2,3,10,11,12,13, 14, 15, 16};
     for (int i=0; i<8; ++i) {
         pinMode(inputPin[i], INPUT);
     }
@@ -252,5 +266,4 @@ void loop()
     if (mode == 3) {
         charLCD("3", 0, 0);
     }
-
 }
