@@ -25,7 +25,6 @@ const int debounceDelay = 50;
 const int mode1_interval = 500;
 const int buzzerPin = 3;
 float start = 0;
-float *start_ptr = &start;
 float stop_time = 0;
 bool st_state = LOW;
 
@@ -138,7 +137,7 @@ void colon(float current) {
     else { charLCD(" ", 2, 1); }
 }
 
-void stw(float start) {
+void stw(float &start) {
     float current;
     int min;
     int sec;
@@ -150,7 +149,7 @@ void stw(float start) {
 
     //2 mins reset
     if (current - start > 120000.00) { 
-        *start_ptr = millis();
+        start = millis();
     }
 
     //start-stop
@@ -166,20 +165,20 @@ void stw(float start) {
     
       if (curr_state == HIGH && st_state == HIGH) {
           //start again
-          *start_ptr = start + (current-stop_time);
+          start = start + (current-stop_time);
           st_state = LOW;    
       }
     }
 
     //reset button
     if (debounce(11) == HIGH) {
-        *start_ptr = current;
+        start = current;
       	st_state = LOW;
     }
     
     if (st_state == LOW) {
-        min = (current - *start_ptr)/60000;
-        sec = (current - *start_ptr)/1000 - (min*60);
+        min = (current - start)/60000;
+        sec = (current - start)/1000 - (min*60);
 
         if (min>9) { str_min = String(min); }
 
