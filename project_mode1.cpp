@@ -39,6 +39,7 @@ const int buzzerPin = 3;
 float start = 0;
 float stop_time = 0;
 bool st_state = LOW;
+bool switch_st = 0;
 
 
 //functions
@@ -119,19 +120,13 @@ void blinkLCD(int pin, String AL, int COL, int ROW, bool sound, int NOTE) {
     if (digitalRead(pin) == HIGH) {
         charLCD(AL, COL, ROW);
 
-        if (sound) {
-            tone(buzzerPin, NOTE, 100);
-        }
+        if (sound) tone(buzzerPin, NOTE, 100);
     }
 
-    else {
-        charLCD(" ", COL, ROW);
-    }
+    else charLCD(" ", COL, ROW);
 }
 
-
 void mode1_lower(bool sound) {
-
     blinkLCD(12, "1", 9, 1, sound, NOTE_C4);
     blinkLCD(11, "2", 10, 1, sound, NOTE_D4);
     blinkLCD(10, "3", 11, 1, sound, NOTE_E4);
@@ -139,7 +134,6 @@ void mode1_lower(bool sound) {
     blinkLCD(16, "5", 13, 1, sound, NOTE_G4);
     blinkLCD(15, "6", 14, 1, sound, NOTE_A4);
     blinkLCD(14, "7", 15, 1, sound, NOTE_B4);
-
 }
 
 void colon(float current) {
@@ -192,13 +186,13 @@ void stw(float &start) {
         min = (current - start)/60000;
         sec = (current - start)/1000 - (min*60);
 
-        if (min>9) { str_min = String(min); }
+        if (min>9) str_min = String(min);
 
-        else { str_min = "0" + String(min); }
+        else str_min = "0" + String(min);
 
-        if (sec>9) { str_sec = String(sec); }
+        if (sec>9) str_sec = String(sec);
         
-        else { str_sec = "0" + String(sec); }
+        else str_sec = "0" + String(sec);
 
         charLCD(str_min, 0, 1);
         colon(current);
@@ -267,20 +261,51 @@ bool debounce(int pin)
   return state;
 }
 
+bool debounce_im(int pin, bool &switch_st)
+{
+  bool state;
+  bool previousState;
+
+  previousState = digitalRead(pin);
+  for(int counter=0; counter < debounceDelay; counter++)
+  {
+    delay(1);
+    state = digitalRead(pin);
+    
+    if( state != previousState)
+    {
+      counter = 0;
+      previousState = state;
+    }
+  }
+
+  if (state == HIGH && switch_st == 0) {
+    
+    switch_st = 1;
+    return HIGH;
+  }
+  
+  if (state == LOW && switch_st == 1) {
+    switch_st = 0;
+    return LOW;
+  }
+
+  else return LOW;
+
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup()
 {
-    int inputPin[] = {0,1,2,3,10,11,12,13, 14, 15, 16};
+    int inputPin[] = {2, 10, 11, 12, 13, 14, 15, 16};
     for (int i=0; i<8; ++i) {
         pinMode(inputPin[i], INPUT);
     }
 
-    pinMode(3, OUTPUT);
-    digitalWrite(3, LOW);
-    
-    lcd.begin(16, 2);           // start the library
-    
+    pinMode(buzzerPin, OUTPUT);
+    digitalWrite(buzzerPin, LOW);
+    lcd.begin(16, 2);              
 }
 
 void loop()
@@ -288,7 +313,7 @@ void loop()
     //loop varible
     bool sound;
 
-    if (debounce(modePin) == HIGH) {
+    if (debounce_im(modePin, switch_st) == HIGH) {
         mode += 1;
         if (mode > 3) {
             mode = 0;
@@ -320,4 +345,5 @@ void loop()
         charLCD("3", 0, 0);
         mode3();
     }
+
 }
