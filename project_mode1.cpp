@@ -13,6 +13,18 @@
 #define NOTE_A4  440
 #define NOTE_AS4 466
 #define NOTE_B4  494
+#define NOTE_C5  523
+#define NOTE_CS5 554
+#define NOTE_D5  587
+#define NOTE_DS5 622
+#define NOTE_E5  659
+#define NOTE_F5  698
+#define NOTE_FS5 740
+#define NOTE_G5  784
+#define NOTE_GS5 831
+#define NOTE_A5  880
+#define NOTE_AS5 932
+#define NOTE_B5  988
 
 // select the pins used on the LCD panel
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
@@ -194,6 +206,48 @@ void stw(float &start) {
     }
 }
 
+void mode3() {
+    
+    //display
+    charLCD("HAPPY BIRTHDAY!", 1, 1);
+
+    //music
+    int numberOfNotes;
+    int pace;
+    int Note;
+
+    int melody[] = {
+    NOTE_G4,  NOTE_G4,  NOTE_A4,  NOTE_G4,  NOTE_C5, NOTE_B4,  
+    NOTE_G4,  NOTE_G4,  NOTE_A4,  NOTE_G4,  NOTE_D5, NOTE_C5,
+    NOTE_G4,  NOTE_G4,  NOTE_G5,  NOTE_E5,  NOTE_C5, NOTE_C5, NOTE_B4, NOTE_A4,
+    NOTE_F5,  NOTE_F5,  NOTE_E5,  NOTE_C5,  NOTE_D5, NOTE_C5
+    };
+
+    int noteDurations[] = {
+    6, 16, 4, 4, 4, 2, 
+    6, 16, 4, 4, 4, 2,
+    6, 16, 4, 4, 6, 16, 3, 1,
+    6, 16, 4, 4, 4, 2
+    
+    };
+
+    numberOfNotes = 26;
+    pace = 2150;
+
+    while (digitalRead(modePin) == LOW && Note < numberOfNotes) // for (int Note = 0; Note < numberOfNotes; ++Note) //counter of Notes
+    {
+        int duration = pace/noteDurations[Note];
+        //Adjust duration with the pace of music
+        tone(buzzerPin, melody[Note],duration); //Play note
+
+        // to distinguish the notes, set a minimum time between them.
+        delay(duration*1.2);
+        ++Note;
+    }
+    Note = 0;
+}
+
+
 bool debounce(int pin)
 {
   bool state;
@@ -264,5 +318,6 @@ void loop()
 
     if (mode == 3) {
         charLCD("3", 0, 0);
+        mode3();
     }
 }
